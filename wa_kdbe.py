@@ -21,6 +21,7 @@ except ImportError:
 
 import argparse
 import concurrent.futures
+import os
 import platform
 import re
 import subprocess
@@ -84,19 +85,15 @@ def BackupWhatsAppApk(SDKVersion, versionName, WhatsAppapkPath):
     os.system(adb + ' shell am force-stop com.whatsapp') if(SDKVersion >
                                                             11) else os.system(adb + ' shell am kill com.whatsapp')
     CustomPrint('Backing up WhatsApp ' + versionName +
-                ' apk, the one installed on device to ' + tmp + 'WhatsAppbackup.apk')
-    os.mkdir(tmp) if not (os.path.isdir(tmp)) else CustomPrint(
-        'Folder ' + tmp + ' already exists.', 'yellow')
+                ' apk, the one installed on device to /data/local/tmp/WhatsAppbackup.apk in your phone.')
     os.system(adb + ' shell cp ' + WhatsAppapkPath +
-              ' /sdcard/WhatsAppbackup.apk')
-    os.system(adb + ' pull /sdcard/WhatsAppbackup.apk ' +
-              helpers + 'WhatsAppbackup.apk')
-    # Delete temp apk from /sdcard.
-    os.system(adb + ' shell rm -rf /sdcard/WhatsAppbackup.apk')
+              ' /data/local/tmp/WhatsAppbackup.apk')
     CustomPrint('Apk backup complete.')
 
 
 def BackupWhatsAppDataasAb(SDKVersion):
+    os.mkdir(tmp) if not (os.path.isdir(tmp)) else CustomPrint(
+        'Folder ' + tmp + ' already exists.', 'yellow')
     CustomPrint('Backing up WhatsApp data as ' + tmp +
                 'whatsapp.ab. May take time, don\'t panic.')
     try:
@@ -201,7 +198,8 @@ def RealDeal(SDKVersion, WhatsAppapkPath, versionName, sdPath):
 def ReinstallWhatsApp():
     CustomPrint('Reinstallting original WhatsApp.')
     try:
-        os.system(adb + ' install -r -d ' + helpers + 'WhatsAppbackup.apk')
+        os.system(
+            adb + ' shell pm install /data/local/tmp/WhatsAppbackup.apk')
     except Exception as e:
         CustomPrint(e, 'red')
         CustomPrint('Could not install WhatsApp, install by running \'restore_whatsapp.py\' or manually installing from Play Store.\nHowever if it crashes then you have to clear storage/clear data from settings \u2192 app settings \u2192 WhatsApp.')
@@ -307,6 +305,7 @@ if __name__ == "__main__":
     tcpPort = args.tcp_port
     isScrCpy = args.scrcpy
     isTarOnly = args.tar_only
+    # TODO : Download legacy on phone(later). Backup original on phone(done). Create backup on phone. Install original from phone.
     if(tcpIP):
         if(not tcpPort):
             tcpPort = '5555'
